@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M 32 0 L 0 0 0 32" fill="none" stroke="#e8eef4" stroke-width="1"/></pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+    <style>
+      .title{font:700 28px Arial,sans-serif;fill:#0f172a}.subtitle{font:500 16px Arial,sans-serif;fill:#475569}.label{font:700 18px Arial,sans-serif;fill:#0f172a}.small{font:500 15px Arial,sans-serif;fill:#334155}.tiny{font:500 13px Arial,sans-serif;fill:#475569}.box{fill:#fff;stroke:#64748b;stroke-width:2;rx:12}.flow{fill:none;stroke:#334155;stroke-width:3;marker-end:url(#arrow)}.cloud{font:700 18px Arial,sans-serif;fill:#fff}.component{fill:#fff;stroke:#64748b;stroke-width:2;rx:10}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+  <text x="800" y="52" class="title" text-anchor="middle">Sistema de Gestión de Usuarios y Roles</text>
+  <text x="800" y="80" class="subtitle" text-anchor="middle">Arquitectura cloud: BFF Spring Boot + Azure Functions Java + Oracle OCI</text>
+
+  <g transform="translate(45 340)">
+    <rect class="box" width="235" height="185"/>
+    <circle cx="117" cy="50" r="28" fill="#f97316"/><path d="M104 50h26M117 37v26" stroke="#fff" stroke-width="4"/>
+    <text x="117" y="108" class="label" text-anchor="middle">Postman</text>
+    <text x="117" y="137" class="small" text-anchor="middle">Cliente de pruebas</text>
+    <text x="117" y="160" class="tiny" text-anchor="middle">CRUD JSON sobre HTTPS</text>
+  </g>
+
+  <g transform="translate(360 135)">
+    <rect x="0" y="0" width="515" height="500" fill="#f8fafc" stroke="#475569" stroke-width="2" rx="14"/>
+    <rect x="0" y="0" width="515" height="52" fill="#ea580c" rx="14"/><text x="26" y="34" class="cloud">AWS</text>
+    <rect x="28" y="80" width="459" height="110" fill="#fff7ed" stroke="#fb923c" stroke-width="2" rx="10"/>
+    <text x="257" y="116" class="label" text-anchor="middle">EC2 + Docker</text>
+    <text x="257" y="145" class="small" text-anchor="middle">Microservicio BFF Spring Boot</text>
+    <text x="257" y="171" class="tiny" text-anchor="middle">Orquesta llamadas y expone /api/users y /api/roles</text>
+    <rect class="component" x="50" y="245" width="185" height="150"/>
+    <text x="142" y="285" class="label" text-anchor="middle">BFF Usuarios</text>
+    <text x="142" y="314" class="small" text-anchor="middle">GET · POST</text>
+    <text x="142" y="339" class="small" text-anchor="middle">PUT · DELETE</text>
+    <text x="142" y="371" class="tiny" text-anchor="middle">/api/users</text>
+    <rect class="component" x="280" y="245" width="185" height="150"/>
+    <text x="372" y="285" class="label" text-anchor="middle">BFF Roles</text>
+    <text x="372" y="314" class="small" text-anchor="middle">GET · POST</text>
+    <text x="372" y="339" class="small" text-anchor="middle">PUT · DELETE</text>
+    <text x="372" y="371" class="tiny" text-anchor="middle">/api/roles</text>
+    <text x="257" y="452" class="tiny" text-anchor="middle">Variables de entorno: USERS_FUNCTION_URL, ROLES_FUNCTION_URL</text>
+    <text x="257" y="476" class="tiny" text-anchor="middle">Logs con ID de correlación · manejo centralizado de errores</text>
+  </g>
+
+  <g transform="translate(970 110)">
+    <rect x="0" y="0" width="410" height="540" fill="#f8fafc" stroke="#475569" stroke-width="2" rx="14"/>
+    <rect x="0" y="0" width="410" height="52" fill="#0078d4" rx="14"/><text x="26" y="34" class="cloud">MICROSOFT AZURE</text>
+    <rect x="42" y="95" width="326" height="155" fill="#eff6ff" stroke="#60a5fa" stroke-width="2" rx="10"/>
+    <text x="205" y="135" class="label" text-anchor="middle">UsuariosFunction</text>
+    <text x="205" y="165" class="small" text-anchor="middle">Azure Function HTTP · Java</text>
+    <text x="205" y="195" class="tiny" text-anchor="middle">CRUD de usuarios · stateless</text>
+    <text x="205" y="221" class="tiny" text-anchor="middle">Validación de role_id existente</text>
+    <rect x="42" y="305" width="326" height="155" fill="#eff6ff" stroke="#60a5fa" stroke-width="2" rx="10"/>
+    <text x="205" y="345" class="label" text-anchor="middle">RolesFunction</text>
+    <text x="205" y="375" class="small" text-anchor="middle">Azure Function HTTP · Java</text>
+    <text x="205" y="405" class="tiny" text-anchor="middle">CRUD de roles · stateless</text>
+    <text x="205" y="431" class="tiny" text-anchor="middle">No elimina roles con usuarios asociados</text>
+    <text x="205" y="502" class="tiny" text-anchor="middle">Azure Monitor / Application Insights</text>
+  </g>
+
+  <g transform="translate(1115 715)">
+    <rect x="0" y="0" width="375" height="145" fill="#fff" stroke="#475569" stroke-width="2" rx="14"/>
+    <rect x="0" y="0" width="375" height="45" fill="#b00020" rx="14"/><text x="24" y="30" class="cloud">ORACLE OCI</text>
+    <text x="187" y="78" class="label" text-anchor="middle">Oracle Database</text>
+    <text x="187" y="105" class="small" text-anchor="middle">ROLES ← USUARIOS</text>
+    <text x="187" y="129" class="tiny" text-anchor="middle">role_id: clave foránea obligatoria</text>
+  </g>
+
+  <path class="flow" d="M280 432 H388"/><text x="323" y="414" class="tiny" text-anchor="middle">HTTPS / JSON</text>
+  <path class="flow" d="M595 380 V280 H970"/><text x="785" y="265" class="tiny" text-anchor="middle">Invocación HTTP segura</text>
+  <path class="flow" d="M765 380 V500 H970"/>
+  <path class="flow" d="M1175 650 V715"/><text x="1200" y="690" class="tiny">JDBC seguro</text>
+  <path class="flow" d="M1285 650 V715"/>
+  <text x="64" y="770" class="subtitle">Flujo: Postman → BFF Dockerizado → Function por dominio → Oracle. Las respuestas vuelven en JSON.</text>
+</svg>

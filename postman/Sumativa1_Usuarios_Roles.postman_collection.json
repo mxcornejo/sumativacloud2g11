@@ -1,0 +1,71 @@
+{
+  "info": {
+    "_postman_id": "f07efab1-6f19-45fc-b94f-bb1d6ac85c65",
+    "name": "DSY2207 Sumativa 1 - Usuarios y Roles",
+    "description": "Pruebas CRUD directas contra Azure Functions. Configure functionBaseUrl, rolesFunctionCode y usersFunctionCode antes de ejecutar.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "functionBaseUrl", "value": "https://sumativa1usuariosrolesmc2026-e4g2d6gectbgarht.brazilsouth-01.azurewebsites.net/api" },
+    { "key": "rolesFunctionCode", "value": "", "type": "string" },
+    { "key": "usersFunctionCode", "value": "", "type": "string" },
+    { "key": "roleId", "value": "", "type": "string" },
+    { "key": "userId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "RolesFunction",
+      "item": [
+        {
+          "name": "Crear rol",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"ADMIN\",\n  \"description\": \"Administrador del sistema\",\n  \"active\": true\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{functionBaseUrl}}/roles?code={{rolesFunctionCode}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Created', () => pm.response.to.have.status(201));", "const response = pm.response.json();", "pm.collectionVariables.set('roleId', String(response.id));"] } }]
+        },
+        { "name": "Listar roles", "request": { "method": "GET", "url": "{{functionBaseUrl}}/roles?code={{rolesFunctionCode}}" } },
+        { "name": "Consultar rol", "request": { "method": "GET", "url": "{{functionBaseUrl}}/roles/{{roleId}}?code={{rolesFunctionCode}}" } },
+        {
+          "name": "Actualizar rol",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"ADMIN\",\n  \"description\": \"Administrador actualizado\",\n  \"active\": true\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{functionBaseUrl}}/roles/{{roleId}}?code={{rolesFunctionCode}}"
+          }
+        },
+        { "name": "Eliminar rol (ejecutar al final)", "request": { "method": "DELETE", "url": "{{functionBaseUrl}}/roles/{{roleId}}?code={{rolesFunctionCode}}" } }
+      ]
+    },
+    {
+      "name": "UsuariosFunction",
+      "item": [
+        {
+          "name": "Crear usuario",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Ana Pérez\",\n  \"email\": \"ana.perez@sumativa.cl\",\n  \"roleId\": {{roleId}},\n  \"active\": true\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{functionBaseUrl}}/users?code={{usersFunctionCode}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Created', () => pm.response.to.have.status(201));", "const response = pm.response.json();", "pm.collectionVariables.set('userId', String(response.id));"] } }]
+        },
+        { "name": "Listar usuarios", "request": { "method": "GET", "url": "{{functionBaseUrl}}/users?code={{usersFunctionCode}}" } },
+        { "name": "Consultar usuario", "request": { "method": "GET", "url": "{{functionBaseUrl}}/users/{{userId}}?code={{usersFunctionCode}}" } },
+        {
+          "name": "Actualizar usuario",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Ana Pérez Actualizada\",\n  \"email\": \"ana.perez@sumativa.cl\",\n  \"roleId\": {{roleId}},\n  \"active\": true\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{functionBaseUrl}}/users/{{userId}}?code={{usersFunctionCode}}"
+          }
+        },
+        { "name": "Eliminar usuario", "request": { "method": "DELETE", "url": "{{functionBaseUrl}}/users/{{userId}}?code={{usersFunctionCode}}" } }
+      ]
+    }
+  ]
+}

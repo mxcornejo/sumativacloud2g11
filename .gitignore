@@ -1,0 +1,18 @@
+# Secretos, material de conexión y archivos locales: nunca versionar.
+Wallet_*.zip
+*.pem
+*.p12
+*.jks
+*.sso
+**/.oracle-wallet/
+**/local.settings.json
+**/.env
+**/target/
+**/deployment/
+
+# Metadatos y material de trabajo que no forma parte de la solución.
+.DS_Store
+.idea/
+.vscode/
+DSY2207_*.pdf
+ejemplo de diagrama visto en clases.jpg

@@ -1,0 +1,79 @@
+{
+  "info": {
+    "_postman_id": "b2e8453f-1d1f-4aa9-926c-5a99837baa10",
+    "name": "DSY2207 Sumativa 1 - BFF EC2 Usuarios y Roles",
+    "description": "Pruebas CRUD por el flujo completo: Postman -> BFF Docker en EC2 -> Azure Functions -> Oracle OCI. No requiere claves de Function.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "bffBaseUrl", "value": "http://44.210.30.141/api", "type": "string" },
+    { "key": "roleId", "value": "", "type": "string" },
+    { "key": "userId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Verificacion",
+      "item": [
+        {
+          "name": "Health del BFF",
+          "request": { "method": "GET", "url": "http://44.210.30.141/api/health" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('BFF disponible', () => pm.response.to.have.status(200));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Roles via BFF",
+      "item": [
+        {
+          "name": "Crear rol",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"ADMIN\",\n  \"description\": \"Administrador del sistema\",\n  \"active\": true\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{bffBaseUrl}}/roles"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Rol creado', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('roleId', String(pm.response.json().id));"] } }]
+        },
+        { "name": "Listar roles", "request": { "method": "GET", "url": "{{bffBaseUrl}}/roles" } },
+        { "name": "Consultar rol", "request": { "method": "GET", "url": "{{bffBaseUrl}}/roles/{{roleId}}" } },
+        {
+          "name": "Actualizar rol",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"ADMIN\",\n  \"description\": \"Administrador actualizado\",\n  \"active\": true\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{bffBaseUrl}}/roles/{{roleId}}"
+          }
+        },
+        { "name": "Eliminar rol (ejecutar al final)", "request": { "method": "DELETE", "url": "{{bffBaseUrl}}/roles/{{roleId}}" } }
+      ]
+    },
+    {
+      "name": "Usuarios via BFF",
+      "item": [
+        {
+          "name": "Crear usuario",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Ana Perez\",\n  \"email\": \"ana.perez@sumativa.cl\",\n  \"roleId\": {{roleId}},\n  \"active\": true\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{bffBaseUrl}}/users"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Usuario creado', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('userId', String(pm.response.json().id));"] } }]
+        },
+        { "name": "Listar usuarios", "request": { "method": "GET", "url": "{{bffBaseUrl}}/users" } },
+        { "name": "Consultar usuario", "request": { "method": "GET", "url": "{{bffBaseUrl}}/users/{{userId}}" } },
+        {
+          "name": "Actualizar usuario",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Ana Perez Actualizada\",\n  \"email\": \"ana.perez@sumativa.cl\",\n  \"roleId\": {{roleId}},\n  \"active\": true\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{bffBaseUrl}}/users/{{userId}}"
+          }
+        },
+        { "name": "Eliminar usuario", "request": { "method": "DELETE", "url": "{{bffBaseUrl}}/users/{{userId}}" } }
+      ]
+    }
+  ]
+}

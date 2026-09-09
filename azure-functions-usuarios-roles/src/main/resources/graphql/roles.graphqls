@@ -1,0 +1,24 @@
+"""Rol que agrupa permisos y se relaciona con uno o más usuarios."""
+type Role {
+  id: ID!
+  name: String!
+  description: String!
+  active: Boolean!
+}
+
+input RoleInput {
+  name: String!
+  description: String
+  active: Boolean = true
+}
+
+type Query {
+  roles: [Role!]!
+  role(id: ID!): Role
+}
+
+type Mutation {
+  createRole(input: RoleInput!): Role!
+  updateRole(id: ID!, input: RoleInput!): Role!
+  deleteRole(id: ID!): Boolean!
+}

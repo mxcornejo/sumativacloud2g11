@@ -1,1 +1,1 @@
-{"IsEncrypted":false,"Values":{"AzureWebJobsStorage":"UseDevelopmentStorage=true","FUNCTIONS_WORKER_RUNTIME":"java","ORACLE_DB_URL":"jdbc:oracle:thin:@b9nhv92q7bji4s88_high","ORACLE_DB_USER":"<usuario>","ORACLE_DB_PASSWORD":"<contrasena>","ORACLE_WALLET_PATH":"<ruta-local-al-wallet>"}}
+{"IsEncrypted":false,"Values":{"AzureWebJobsStorage":"UseDevelopmentStorage=true","FUNCTIONS_WORKER_RUNTIME":"java","ORACLE_DB_URL":"jdbc:oracle:thin:@<servicio>_high","ORACLE_DB_USER":"<usuario>","ORACLE_DB_PASSWORD":"<contrasena>","ORACLE_WALLET_PATH":"<ruta-local-al-wallet>"}}

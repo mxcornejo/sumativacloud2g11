@@ -11,7 +11,8 @@ public class HttpClientConfig {
   RestTemplate restTemplate() {
     SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
     factory.setConnectTimeout(5_000);
-    factory.setReadTimeout(15_000);
+    // Azure Functions y Oracle pueden superar 15 segundos durante un arranque en frío.
+    factory.setReadTimeout(45_000);
     return new RestTemplate(factory);
   }
 }

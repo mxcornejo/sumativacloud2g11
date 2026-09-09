@@ -1,0 +1,26 @@
+"""Usuario administrado por el sistema de Gestión de Usuarios y Roles."""
+type User {
+  id: ID!
+  fullName: String!
+  email: String!
+  roleId: ID!
+  active: Boolean!
+}
+
+input UserInput {
+  fullName: String!
+  email: String!
+  roleId: ID!
+  active: Boolean = true
+}
+
+type Query {
+  users: [User!]!
+  user(id: ID!): User
+}
+
+type Mutation {
+  createUser(input: UserInput!): User!
+  updateUser(id: ID!, input: UserInput!): User!
+  deleteUser(id: ID!): Boolean!
+}

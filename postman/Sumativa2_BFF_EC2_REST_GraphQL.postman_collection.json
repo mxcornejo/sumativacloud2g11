@@ -1,0 +1,133 @@
+{
+  "info": {
+    "name": "DSY2207 Sumativa 2 - BFF EC2 REST y GraphQL",
+    "description": "Validación del recorrido Postman -> BFF Docker/EC2 -> cuatro Azure Functions Java -> Oracle. No contiene secretos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "bffBaseUrl", "value": "http://44.210.30.141/api", "type": "string" },
+    { "key": "runId", "value": "", "type": "string" },
+    { "key": "roleId", "value": "", "type": "string" },
+    { "key": "userId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "01 - Verificación",
+      "item": [
+        {
+          "name": "Health del BFF",
+          "event": [
+            { "listen": "prerequest", "script": { "exec": ["pm.collectionVariables.set('runId', String(Date.now()));", "pm.collectionVariables.unset('roleId');", "pm.collectionVariables.unset('userId');"] } },
+            { "listen": "test", "script": { "exec": ["pm.test('BFF disponible', () => pm.response.to.have.status(200));", "pm.test('Servicio correcto', () => pm.expect(pm.response.json().service).to.eql('usuarios-roles-bff'));"] } }
+          ],
+          "request": { "method": "GET", "url": "{{bffBaseUrl}}/health" }
+        }
+      ]
+    },
+    {
+      "name": "02 - REST",
+      "item": [
+        {
+          "name": "Crear rol REST",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Rol creado', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('roleId', String(pm.response.json().id));"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"SUMATIVA2_{{runId}}\",\n  \"description\": \"Rol creado para evidencia REST y GraphQL\",\n  \"active\": true\n}" },
+            "url": "{{bffBaseUrl}}/roles"
+          }
+        },
+        {
+          "name": "Crear usuario REST",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Usuario creado', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('userId', String(pm.response.json().id));"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Usuario Sumativa 2\",\n  \"email\": \"sumativa2.{{runId}}@example.com\",\n  \"roleId\": {{roleId}},\n  \"active\": true\n}" },
+            "url": "{{bffBaseUrl}}/users"
+          }
+        },
+        {
+          "name": "Listar usuarios REST",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Lista REST disponible', () => pm.response.to.have.status(200));", "pm.test('Incluye usuario creado', () => pm.expect(pm.response.json().some(u => String(u.id) === pm.collectionVariables.get('userId'))).to.be.true);"] } }],
+          "request": { "method": "GET", "url": "{{bffBaseUrl}}/users" }
+        },
+        {
+          "name": "Impedir eliminar rol en uso",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Conflicto controlado', () => pm.response.to.have.status(409));", "pm.test('Código ROLE_IN_USE', () => pm.expect(pm.response.json().code).to.eql('ROLE_IN_USE'));"] } }],
+          "request": { "method": "DELETE", "url": "{{bffBaseUrl}}/roles/{{roleId}}" }
+        }
+      ]
+    },
+    {
+      "name": "03 - GraphQL",
+      "item": [
+        {
+          "name": "Consultar roles GraphQL",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Query de roles correcta', () => pm.response.to.have.status(200));", "pm.test('GraphQL entrega data.roles', () => pm.expect(pm.response.json().data.roles).to.be.an('array'));"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"query\": \"query ListaRoles { roles { id name description active } }\",\n  \"variables\": {},\n  \"operationName\": \"ListaRoles\"\n}" },
+            "url": "{{bffBaseUrl}}/graphql/roles"
+          }
+        },
+        {
+          "name": "Actualizar rol GraphQL",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Mutation de rol correcta', () => pm.response.to.have.status(200));", "pm.test('Rol actualizado sin errores', () => { const json = pm.response.json(); pm.expect(json.errors).to.be.undefined; pm.expect(json.data.updateRole.description).to.eql('Actualizado mediante GraphQL'); });"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"query\": \"mutation ActualizaRol($id: ID!, $input: RoleInput!) { updateRole(id: $id, input: $input) { id name description active } }\",\n  \"variables\": {\n    \"id\": \"{{roleId}}\",\n    \"input\": {\n      \"name\": \"SUMATIVA2_{{runId}}\",\n      \"description\": \"Actualizado mediante GraphQL\",\n      \"active\": true\n    }\n  },\n  \"operationName\": \"ActualizaRol\"\n}" },
+            "url": "{{bffBaseUrl}}/graphql/roles"
+          }
+        },
+        {
+          "name": "Consultar usuarios GraphQL",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Query de usuarios correcta', () => pm.response.to.have.status(200));", "pm.test('Incluye usuario creado', () => pm.expect(pm.response.json().data.users.some(u => String(u.id) === pm.collectionVariables.get('userId'))).to.be.true);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"query\": \"query ListaUsuarios { users { id fullName email roleId active } }\",\n  \"variables\": {},\n  \"operationName\": \"ListaUsuarios\"\n}" },
+            "url": "{{bffBaseUrl}}/graphql/users"
+          }
+        },
+        {
+          "name": "Actualizar usuario GraphQL",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Mutation de usuario correcta', () => pm.response.to.have.status(200));", "pm.test('Usuario actualizado sin errores', () => { const json = pm.response.json(); pm.expect(json.errors).to.be.undefined; pm.expect(json.data.updateUser.fullName).to.eql('Usuario Actualizado GraphQL'); });"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"query\": \"mutation ActualizaUsuario($id: ID!, $input: UserInput!) { updateUser(id: $id, input: $input) { id fullName email roleId active } }\",\n  \"variables\": {\n    \"id\": \"{{userId}}\",\n    \"input\": {\n      \"fullName\": \"Usuario Actualizado GraphQL\",\n      \"email\": \"sumativa2.{{runId}}@example.com\",\n      \"roleId\": \"{{roleId}}\",\n      \"active\": true\n    }\n  },\n  \"operationName\": \"ActualizaUsuario\"\n}" },
+            "url": "{{bffBaseUrl}}/graphql/users"
+          }
+        },
+        {
+          "name": "Consulta GraphQL inválida",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Solicitud GraphQL procesada', () => pm.response.to.have.status(200));", "pm.test('Respuesta contiene errors', () => pm.expect(pm.response.json().errors).to.be.an('array').that.is.not.empty);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"query\": \"query Invalida { campoQueNoExiste }\",\n  \"variables\": {},\n  \"operationName\": \"Invalida\"\n}" },
+            "url": "{{bffBaseUrl}}/graphql/users"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Limpieza",
+      "item": [
+        {
+          "name": "Eliminar usuario",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Usuario eliminado', () => pm.response.to.have.status(204));"] } }],
+          "request": { "method": "DELETE", "url": "{{bffBaseUrl}}/users/{{userId}}" }
+        },
+        {
+          "name": "Eliminar rol",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Rol eliminado', () => pm.response.to.have.status(204));"] } }],
+          "request": { "method": "DELETE", "url": "{{bffBaseUrl}}/roles/{{roleId}}" }
+        }
+      ]
+    }
+  ]
+}

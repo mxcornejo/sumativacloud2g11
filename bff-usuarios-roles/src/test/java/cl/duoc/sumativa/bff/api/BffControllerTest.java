@@ -41,7 +41,9 @@ class BffControllerTest {
     String correlationId;
 
     RecordingGateway() {
-      super(new RestTemplate(), new FunctionEndpointsProperties("http://unused/users", "", "http://unused/roles", ""));
+      super(new RestTemplate(), new FunctionEndpointsProperties(
+          "http://unused/users", "", "http://unused/roles", "",
+          "http://unused/graphql/users", "", "http://unused/graphql/roles", ""));
     }
 
     @Override

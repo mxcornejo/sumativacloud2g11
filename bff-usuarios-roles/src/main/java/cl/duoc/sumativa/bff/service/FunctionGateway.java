@@ -24,14 +24,23 @@ public class FunctionGateway {
 
   public ResponseEntity<String> forward(String domain, HttpMethod method, String resourceId, String body, String correlationId) {
     String url = functionUrl(domain, resourceId);
+    return exchange(url, method, body, correlationId, functionKey(domain), domain);
+  }
+
+  public ResponseEntity<String> forwardGraphql(String domain, String body, String correlationId) {
+    String url = graphqlUrl(domain);
+    return exchange(url, HttpMethod.POST, body, correlationId, graphqlKey(domain), "GraphQL de " + domain);
+  }
+
+  private ResponseEntity<String> exchange(
+      String url, HttpMethod method, String body, String correlationId, String functionKey, String service) {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.setAccept(List.of(MediaType.APPLICATION_JSON));
     headers.set("X-Correlation-Id", correlationId);
-    String key = functionKey(domain);
-    if (key != null && !key.isBlank()) {
+    if (functionKey != null && !functionKey.isBlank()) {
       // Azure Functions accepts this header and keeps the secret out of URLs and logs.
-      headers.set("x-functions-key", key);
+      headers.set("x-functions-key", functionKey);
     }
     try {
       ResponseEntity<String> response = restTemplate.exchange(url, method, new HttpEntity<>(body, headers), String.class);
@@ -41,7 +50,7 @@ public class FunctionGateway {
       return ResponseEntity.status(exception.getStatusCode()).contentType(MediaType.APPLICATION_JSON)
           .header("X-Correlation-Id", correlationId).body(exception.getResponseBodyAsString());
     } catch (ResourceAccessException exception) {
-      throw new FunctionUnavailableException(domain);
+      throw new FunctionUnavailableException(service);
     }
   }
 
@@ -63,5 +72,17 @@ public class FunctionGateway {
 
   private String functionKey(String domain) {
     return "users".equals(domain) ? endpoints.usersKey() : endpoints.rolesKey();
+  }
+
+  private String graphqlUrl(String domain) {
+    return switch (domain) {
+      case "users" -> endpoints.usersGraphqlUrl();
+      case "roles" -> endpoints.rolesGraphqlUrl();
+      default -> throw new IllegalArgumentException("Dominio no soportado");
+    };
+  }
+
+  private String graphqlKey(String domain) {
+    return "users".equals(domain) ? endpoints.usersGraphqlKey() : endpoints.rolesGraphqlKey();
   }
 }

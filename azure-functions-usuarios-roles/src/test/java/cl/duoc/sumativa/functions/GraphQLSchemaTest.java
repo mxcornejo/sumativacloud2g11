@@ -3,9 +3,15 @@ package cl.duoc.sumativa.functions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import graphql.ErrorType;
+import graphql.ExecutionResultImpl;
 import graphql.GraphQL;
+import graphql.GraphQLError;
+import graphql.GraphqlErrorBuilder;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.idl.RuntimeWiring;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class GraphQLSchemaTest {
@@ -42,5 +48,22 @@ class GraphQLSchemaTest {
     assertEquals(409, DomainErrors.status("DUPLICATE_ROLE").value());
     assertEquals(409, DomainErrors.status("ROLE_IN_USE").value());
     assertEquals(500, DomainErrors.status("DATABASE_ERROR").value());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void validationErrorsExposeControlledCodeAndCorrelationId() {
+    GraphQLError error = GraphqlErrorBuilder.newError()
+        .message("Campo inválido")
+        .errorType(ErrorType.ValidationError)
+        .build();
+
+    Map<String, Object> response = GraphQLSupport.specification(
+        new ExecutionResultImpl(List.of(error)), "corr-test");
+    Map<String, Object> firstError = ((List<Map<String, Object>>) response.get("errors")).get(0);
+    Map<String, Object> extensions = (Map<String, Object>) firstError.get("extensions");
+
+    assertEquals("GRAPHQL_VALIDATION_ERROR", extensions.get("code"));
+    assertEquals("corr-test", extensions.get("correlationId"));
   }
 }

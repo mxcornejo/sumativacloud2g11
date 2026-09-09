@@ -19,7 +19,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -54,7 +56,7 @@ final class GraphQLSupport {
       Object operationName = payload.get("operationName");
       if (operationName != null && !operationName.toString().isBlank()) input.operationName(operationName.toString());
       ExecutionResult result = graphQL.execute(input.build());
-      return JsonResponses.body(request, HttpStatus.OK, result.toSpecification(), correlationId);
+      return JsonResponses.body(request, HttpStatus.OK, specification(result, correlationId), correlationId);
     } catch (Exception exception) {
       return invalidRequest(request, correlationId, "El cuerpo debe contener una solicitud GraphQL válida.");
     }
@@ -72,6 +74,34 @@ final class GraphQLSupport {
     } catch (NumberFormatException exception) {
       throw new DomainException("INVALID_ID", "El identificador debe ser un número positivo.");
     }
+  }
+
+  static Map<String, Object> specification(ExecutionResult result, String correlationId) {
+    Map<String, Object> response = new LinkedHashMap<>(result.toSpecification());
+    if (result.getErrors().isEmpty()) return response;
+
+    List<Map<String, Object>> errors = new ArrayList<>();
+    for (GraphQLError error : result.getErrors()) {
+      Map<String, Object> item = new LinkedHashMap<>(error.toSpecification());
+      Map<String, Object> extensions = new LinkedHashMap<>();
+      Object existing = item.get("extensions");
+      if (existing instanceof Map<?, ?> map) {
+        map.forEach((key, value) -> extensions.put(String.valueOf(key), value));
+      }
+      extensions.putIfAbsent("code", errorCode(error));
+      extensions.putIfAbsent("correlationId", correlationId);
+      item.put("extensions", extensions);
+      errors.add(item);
+    }
+    response.put("errors", errors);
+    return response;
+  }
+
+  private static String errorCode(GraphQLError error) {
+    String type = String.valueOf(error.getErrorType());
+    if ("ValidationError".equals(type)) return "GRAPHQL_VALIDATION_ERROR";
+    if ("InvalidSyntax".equals(type)) return "GRAPHQL_PARSE_ERROR";
+    return "GRAPHQL_ERROR";
   }
 
   @SuppressWarnings("unchecked")

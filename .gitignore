@@ -7,12 +7,37 @@ Wallet_*.zip
 **/.oracle-wallet/
 **/local.settings.json
 **/.env
+**/.env.*
+!**/.env.example
+!**/.env.sample
 **/target/
 **/deployment/
+*.class
+*.jar
+*.log
+*.zip
 
 # Metadatos y material de trabajo que no forma parte de la solución.
 .DS_Store
 .idea/
 .vscode/
+
 DSY2207_*.pdf
 ejemplo de diagrama visto en clases.jpg
+
+*/docs
+
+# Preparación de la presentación: conservar localmente, fuera de la entrega.
+/docs/guion-*.md
+/docs/checklist-evidencias.md
+/docs/borradores/
+/docs/notas-personales/
+
+# Capturas, grabaciones y archivos temporales de preparación.
+Captura de pantalla*.png
+Screenshot*.png
+*.mp4
+*.mov
+*.swp
+*.tmp
+~$*

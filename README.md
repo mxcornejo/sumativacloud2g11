@@ -23,7 +23,6 @@ El BFF protege las claves de Azure Functions, propaga `X-Correlation-Id` y manti
 - `bff-usuarios-roles/`: BFF Spring Boot 3.3.5 desplegado con Docker en EC2.
 - `postman/`: colecciones de validación del recorrido directo y del recorrido completo por EC2.
 - `diseno/`: modelo Oracle y diagrama editable de arquitectura.
-- `docs/`: guion del video y lista de evidencias.
 
 ## API pública del BFF
 

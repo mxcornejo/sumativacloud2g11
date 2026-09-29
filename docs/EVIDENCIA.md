@@ -18,6 +18,9 @@ La ejecución completa terminó el 29 de septiembre de 2026 a las 13:14:36 UTC. 
 
 Una prueba previa directa a Azure tuvo una interrupción de conexión durante GraphQL. Se limpiaron los registros identificados y se completó después la prueba por EC2. No se cuenta esa primera ejecución incompleta como prueba aprobada.
 
+## Git local
+La rama sumativa-3-event-grid se conserva solo localmente por decisión del usuario. La extensión EDA no está publicada en GitHub; el enlace del repositorio anterior no contiene estos cambios.
+
 ## Pendiente de entrega académica
 - Video Kaltura de ambos integrantes, de 4 a 8 minutos, y enlace real con permisos para el docente.
 - Evidencia de participación equitativa en Git: no se pueden atribuir artificialmente commits a la pareja.

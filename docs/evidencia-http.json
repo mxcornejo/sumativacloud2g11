@@ -1,0 +1,119 @@
+{
+  "timestamp": "2026-09-29T13:14:36Z",
+  "subjects": [
+    "/roles/44",
+    "/usuarios/42",
+    "/roles/45",
+    "/usuarios/43"
+  ],
+  "checks": [
+    {
+      "method": "POST",
+      "path": "roles",
+      "status": 201,
+      "expected": 201
+    },
+    {
+      "method": "POST",
+      "path": "users",
+      "status": 201,
+      "expected": 201
+    },
+    {
+      "method": "GET",
+      "path": "roles/44",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "GET",
+      "path": "users/42",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "PUT",
+      "path": "roles/44",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "PUT",
+      "path": "users/42",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "roles/44",
+      "status": 409,
+      "expected": 409
+    },
+    {
+      "method": "DELETE",
+      "path": "users/42",
+      "status": 204,
+      "expected": 204
+    },
+    {
+      "method": "GET",
+      "path": "users/42",
+      "status": 404,
+      "expected": 404
+    },
+    {
+      "method": "DELETE",
+      "path": "roles/44",
+      "status": 204,
+      "expected": 204
+    },
+    {
+      "method": "POST",
+      "path": "graphql/roles",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "POST",
+      "path": "graphql/users",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "POST",
+      "path": "graphql/roles",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "POST",
+      "path": "graphql/users",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "POST",
+      "path": "graphql/roles",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "POST",
+      "path": "graphql/users",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "POST",
+      "path": "graphql/users",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "POST",
+      "path": "graphql/roles",
+      "status": 200,
+      "expected": 200
+    }
+  ]
+}

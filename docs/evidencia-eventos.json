@@ -1,0 +1,86 @@
+[
+  {
+    "EVENT_ID": "5C9FF6D50D65A00EE063E75E000AB3E8",
+    "EVENT_TYPE": "Roles.Deleted",
+    "SUBJECT": "/roles/45",
+    "PUBLICATION": "PUBLISHED",
+    "CONSUMPTION": "PROCESSED"
+  },
+  {
+    "EVENT_ID": "5C9FF6C48E029FFAE063E75E000A872D",
+    "EVENT_TYPE": "Usuarios.Deleted",
+    "SUBJECT": "/usuarios/43",
+    "PUBLICATION": "PUBLISHED",
+    "CONSUMPTION": "PROCESSED"
+  },
+  {
+    "EVENT_ID": "5C9FF6B3F5339FF8E063E75E000A7DA0",
+    "EVENT_TYPE": "Usuarios.Updated",
+    "SUBJECT": "/usuarios/43",
+    "PUBLICATION": "PUBLISHED",
+    "CONSUMPTION": "PROCESSED"
+  },
+  {
+    "EVENT_ID": "5C9FF6A276469FF6E063E75E000A32C7",
+    "EVENT_TYPE": "Roles.Updated",
+    "SUBJECT": "/roles/45",
+    "PUBLICATION": "PUBLISHED",
+    "CONSUMPTION": "PROCESSED"
+  },
+  {
+    "EVENT_ID": "5C9FF6721A3C9FE5E063E75E000AAFB3",
+    "EVENT_TYPE": "Usuarios.Created",
+    "SUBJECT": "/usuarios/43",
+    "PUBLICATION": "PUBLISHED",
+    "CONSUMPTION": "PROCESSED"
+  },
+  {
+    "EVENT_ID": "5C9FF6595C259FE2E063E75E000A61D8",
+    "EVENT_TYPE": "Roles.Created",
+    "SUBJECT": "/roles/45",
+    "PUBLICATION": "PUBLISHED",
+    "CONSUMPTION": "PROCESSED"
+  },
+  {
+    "EVENT_ID": "5C9FF6429B1B9FCFE063E75E000AE59E",
+    "EVENT_TYPE": "Roles.Deleted",
+    "SUBJECT": "/roles/44",
+    "PUBLICATION": "PUBLISHED",
+    "CONSUMPTION": "PROCESSED"
+  },
+  {
+    "EVENT_ID": "5C9FF62170D19F80E063E75E000A0E3D",
+    "EVENT_TYPE": "Usuarios.Deleted",
+    "SUBJECT": "/usuarios/42",
+    "PUBLICATION": "PUBLISHED",
+    "CONSUMPTION": "PROCESSED"
+  },
+  {
+    "EVENT_ID": "5C9FF5FF23B49F1EE063E75E000AB4E9",
+    "EVENT_TYPE": "Usuarios.Updated",
+    "SUBJECT": "/usuarios/42",
+    "PUBLICATION": "PUBLISHED",
+    "CONSUMPTION": "PROCESSED"
+  },
+  {
+    "EVENT_ID": "5C9FF5EA06339F10E063E75E000AEDE6",
+    "EVENT_TYPE": "Roles.Updated",
+    "SUBJECT": "/roles/44",
+    "PUBLICATION": "PUBLISHED",
+    "CONSUMPTION": "PROCESSED"
+  },
+  {
+    "EVENT_ID": "5C9FECC0195598E2E063E75E000A9DC3",
+    "EVENT_TYPE": "Usuarios.Created",
+    "SUBJECT": "/usuarios/42",
+    "PUBLICATION": "PUBLISHED",
+    "CONSUMPTION": "PROCESSED"
+  },
+  {
+    "EVENT_ID": "5C9FECACCE5A98D6E063E75E000A8777",
+    "EVENT_TYPE": "Roles.Created",
+    "SUBJECT": "/roles/44",
+    "PUBLICATION": "PUBLISHED",
+    "CONSUMPTION": "PROCESSED"
+  }
+]

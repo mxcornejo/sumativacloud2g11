@@ -41,3 +41,13 @@ Screenshot*.png
 *.swp
 *.tmp
 ~$*
+
+# Documentación de preparación: conservar fuera del PR de Sumativa 3.
+/docs/DESPLIEGUE.md
+/docs/EVIDENCIA.md
+/docs/GUION_VIDEO.md
+/docs/INFORME.md
+/docs/MATRIZ_PAUTA.md
+/docs/PRUEBAS.md
+/docs/evidencia-eventos.json
+/docs/evidencia-http.json

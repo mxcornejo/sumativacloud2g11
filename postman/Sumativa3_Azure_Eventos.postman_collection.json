@@ -1,0 +1,107 @@
+{
+  "info": {
+    "name": "Sumativa 3 - CRUD Azure y generación EDA",
+    "description": "Ejecutar CRUD para generar eventos; comprobar luego event_id en Oracle. No basta HTTP 200 para acreditar consumo.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "functionBaseUrl",
+      "value": "https://sumativa1usuariosrolesmc2026-e4g2d6gectbgarht.brazilsouth-01.azurewebsites.net/api"
+    },
+    {
+      "key": "rolesRestKey",
+      "value": "",
+      "type": "secret"
+    },
+    {
+      "key": "usersRestKey",
+      "value": "",
+      "type": "secret"
+    },
+    {
+      "key": "rolesGraphqlKey",
+      "value": "",
+      "type": "secret"
+    },
+    {
+      "key": "usersGraphqlKey",
+      "value": "",
+      "type": "secret"
+    }
+  ],
+  "item": [
+    {
+      "name": "RolesFunction REST",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-functions-key",
+            "value": "{{rolesRestKey}}",
+            "type": "text"
+          }
+        ],
+        "url": "{{functionBaseUrl}}/roles"
+      }
+    },
+    {
+      "name": "UsuariosFunction REST",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-functions-key",
+            "value": "{{usersRestKey}}",
+            "type": "text"
+          }
+        ],
+        "url": "{{functionBaseUrl}}/users"
+      }
+    },
+    {
+      "name": "RolesGraphQLFunction",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-functions-key",
+            "value": "{{rolesGraphqlKey}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { roles { id name } }\",\"variables\":{}}"
+        },
+        "url": "{{functionBaseUrl}}/graphql/roles"
+      }
+    },
+    {
+      "name": "UsuariosGraphQLFunction",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-functions-key",
+            "value": "{{usersGraphqlKey}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { users { id fullName } }\",\"variables\":{}}"
+        },
+        "url": "{{functionBaseUrl}}/graphql/users"
+      }
+    }
+  ]
+}

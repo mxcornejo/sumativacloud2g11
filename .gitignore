@@ -51,3 +51,23 @@ Screenshot*.png
 /docs/PRUEBAS.md
 /docs/evidencia-eventos.json
 /docs/evidencia-http.json
+
+# Resultados locales de ensayos del video EFT.
+/evidencias-video/
+**/__pycache__/
+*.pyc
+
+# Material local de preparación y documentación, fuera de los commits.
+/docs/
+/video-eft.sh
+/infra/verificar_eft.py
+/infra/test_verificar_eft.py
+/diseno/arquitectura-eft.svg
+
+# Configuración y aclaraciones locales para asistentes de IA.
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.agents/
+.codex/
+.claude/

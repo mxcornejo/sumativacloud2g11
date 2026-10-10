@@ -16,6 +16,17 @@ import org.junit.jupiter.api.Test;
 
 class GraphQLSchemaTest {
   @Test
+  void creationAcceptsNoRoleAndReturnsNullableRole() {
+    java.util.Map<String,Object> user = new java.util.HashMap<>();
+    user.put("id", "1"); user.put("fullName", "Test"); user.put("email", "test@example.test"); user.put("active", true); user.put("roleId", null);
+    GraphQL gql = GraphQLSupport.build("/graphql/users.graphqls", RuntimeWiring.newRuntimeWiring()
+        .type("Mutation", t -> t.dataFetcher("createUser", e -> user)).build());
+    var result = gql.execute("mutation { createUser(input: {fullName: \"Test\", email: \"test@example.test\"}) { id roleId } }");
+    assertEquals(0, result.getErrors().size());
+    assertNotNull(result.getData());
+  }
+
+  @Test
   void usersSchemaExposesRequiredQueriesAndMutations() {
     GraphQL graphQL = GraphQLSupport.build("/graphql/users.graphqls", RuntimeWiring.newRuntimeWiring().build());
     GraphQLObjectType query = graphQL.getGraphQLSchema().getQueryType();

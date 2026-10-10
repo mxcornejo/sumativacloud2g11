@@ -1,0 +1,785 @@
+{
+  "info": {
+    "name": "EFT S9 · Video paso a paso · Usuarios y Roles",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "24 solicitudes para grabación manual. Configurar eftBffUrl con el BFF EFT desplegado. Ejecutar en orden y repetir solamente las consultas de espera 04, 11, 15 y 22. No ejecutar como Runner continuo sin controlar esas esperas. IDs se guardan automáticamente para ver-auditoria.sh. Se crean solo entidades con prefijo EFT. No contiene claves."
+  },
+  "variable": [
+    {
+      "key": "eftBffUrl",
+      "value": "http://44.210.30.141"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 · BFF health e iniciar una demostración nueva",
+      "request": {
+        "method": "GET",
+        "url": "{{eftBffUrl}}/api/health",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "Ejecutar una vez al comenzar. Genera nombres/correos únicos y limpia los IDs de la ejecución previa. No repetir durante la demostración."
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const tag='EFT_'+pm.variables.replaceIn('{{$guid}}').replace(/-/g,'').slice(0,10); pm.collectionVariables.set('tag',tag); pm.collectionVariables.set('email',tag.toLowerCase()+'@example.test'); pm.collectionVariables.set('gqlEmail',tag.toLowerCase()+'g@example.test'); ['userId','roleId','gqlUserId','gqlRoleId','defaultRoleId'].forEach(k=>pm.collectionVariables.unset(k));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 · Identificar rol por defecto",
+      "request": {
+        "method": "GET",
+        "url": "{{eftBffUrl}}/api/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": ""
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const r=pm.response.json().find(x=>x.name==='EFT_USUARIO' && x.active); pm.test('EFT_USUARIO existe',()=>pm.expect(r).to.exist); if(!r) throw new Error('Falta desplegar la migración EFT'); pm.collectionVariables.set('defaultRoleId',String(r.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 · REST crear usuario sin rol",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"{{tag}}\",\n  \"email\": \"{{email}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "pm.collectionVariables.set('userId',String(pm.response.json().id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 · REST esperar rol por defecto",
+      "request": {
+        "method": "GET",
+        "url": "{{eftBffUrl}}/api/users/{{userId}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "Repetir esta consulta cada 3 segundos hasta que pase el test. No volver a crear el usuario. Máximo sugerido 180 segundos; si no llega, detener y revisar publicación/consumo."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Rol por defecto asignado',()=>pm.expect(String(pm.response.json().roleId)).to.eql(pm.collectionVariables.get('defaultRoleId')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 · REST crear rol temporal",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{tag}}\",\n  \"description\": \"Demo EFT\",\n  \"active\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "pm.collectionVariables.set('roleId',String(pm.response.json().id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 · REST consultar rol",
+      "request": {
+        "method": "GET",
+        "url": "{{eftBffUrl}}/api/roles/{{roleId}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": ""
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 · REST actualizar rol",
+      "request": {
+        "method": "PUT",
+        "url": "{{eftBffUrl}}/api/roles/{{roleId}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{tag}}\",\n  \"description\": \"Actualizado en el video\",\n  \"active\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 · REST asignar rol temporal al usuario",
+      "request": {
+        "method": "PUT",
+        "url": "{{eftBffUrl}}/api/users/{{userId}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"{{tag}}\",\n  \"email\": \"{{email}}\",\n  \"roleId\": \"{{roleId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Rol temporal asignado',()=>pm.expect(String(pm.response.json().roleId)).to.eql(pm.collectionVariables.get('roleId')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 · REST eliminar rol ocupado",
+      "request": {
+        "method": "DELETE",
+        "url": "{{eftBffUrl}}/api/roles/{{roleId}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": ""
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 · REST comprobar rol eliminado",
+      "request": {
+        "method": "GET",
+        "url": "{{eftBffUrl}}/api/roles/{{roleId}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": ""
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 · REST esperar retiro del rol",
+      "request": {
+        "method": "GET",
+        "url": "{{eftBffUrl}}/api/users/{{userId}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "Repetir cada 3 segundos hasta roleId null; no avanzar si sigue asociado tras 180 segundos."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Usuario conservado sin rol',()=>pm.expect(pm.response.json().roleId).to.eql(null));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 · REST eliminar usuario",
+      "request": {
+        "method": "DELETE",
+        "url": "{{eftBffUrl}}/api/users/{{userId}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": ""
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 · REST comprobar usuario eliminado",
+      "request": {
+        "method": "GET",
+        "url": "{{eftBffUrl}}/api/users/{{userId}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": ""
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 · GraphQL crear usuario sin rol",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/graphql/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"mutation($i:CreateUserInput!){createUser(input:$i){id roleId}}\",\n  \"variables\": {\n    \"i\": {\n      \"fullName\": \"{{tag}}\",\n      \"email\": \"{{gqlEmail}}\"\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const r=pm.response.json(); pm.test('Sin errores GraphQL',()=>pm.expect(r.errors).to.be.undefined); if(r.errors) throw new Error('Detener demostración: GraphQL devolvió errores');",
+              "pm.collectionVariables.set('gqlUserId',String(r.data.createUser.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 · GraphQL esperar rol por defecto",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/graphql/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "Repetir cada 3 segundos hasta que pase el test, máximo sugerido 180 segundos.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query($id:ID!){user(id:$id){id roleId}}\",\n  \"variables\": {\n    \"id\": \"{{gqlUserId}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const r=pm.response.json(); pm.test('Sin errores GraphQL',()=>pm.expect(r.errors).to.be.undefined); if(r.errors) throw new Error('Detener demostración: GraphQL devolvió errores');",
+              "pm.test('Rol por defecto asignado',()=>pm.expect(String(r.data.user.roleId)).to.eql(pm.collectionVariables.get('defaultRoleId')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 · GraphQL crear rol temporal",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/graphql/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"mutation($i:RoleInput!){createRole(input:$i){id name}}\",\n  \"variables\": {\n    \"i\": {\n      \"name\": \"{{tag}}_G\",\n      \"description\": \"Demo GraphQL\"\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const r=pm.response.json(); pm.test('Sin errores GraphQL',()=>pm.expect(r.errors).to.be.undefined); if(r.errors) throw new Error('Detener demostración: GraphQL devolvió errores');",
+              "pm.collectionVariables.set('gqlRoleId',String(r.data.createRole.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 · GraphQL consultar rol",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/graphql/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query($id:ID!){role(id:$id){id name description}}\",\n  \"variables\": {\n    \"id\": \"{{gqlRoleId}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const r=pm.response.json(); pm.test('Sin errores GraphQL',()=>pm.expect(r.errors).to.be.undefined); if(r.errors) throw new Error('Detener demostración: GraphQL devolvió errores');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 · GraphQL actualizar rol",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/graphql/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"mutation($id:ID!,$i:RoleInput!){updateRole(id:$id,input:$i){id description}}\",\n  \"variables\": {\n    \"id\": \"{{gqlRoleId}}\",\n    \"i\": {\n      \"name\": \"{{tag}}_G\",\n      \"description\": \"Actualizado en el video\"\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const r=pm.response.json(); pm.test('Sin errores GraphQL',()=>pm.expect(r.errors).to.be.undefined); if(r.errors) throw new Error('Detener demostración: GraphQL devolvió errores');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 · GraphQL asignar rol temporal",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/graphql/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"mutation($id:ID!,$i:UserInput!){updateUser(id:$id,input:$i){id roleId}}\",\n  \"variables\": {\n    \"id\": \"{{gqlUserId}}\",\n    \"i\": {\n      \"fullName\": \"{{tag}}\",\n      \"email\": \"{{gqlEmail}}\",\n      \"roleId\": \"{{gqlRoleId}}\"\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const r=pm.response.json(); pm.test('Sin errores GraphQL',()=>pm.expect(r.errors).to.be.undefined); if(r.errors) throw new Error('Detener demostración: GraphQL devolvió errores');",
+              "pm.test('Rol temporal asignado',()=>pm.expect(String(r.data.updateUser.roleId)).to.eql(pm.collectionVariables.get('gqlRoleId')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 · GraphQL eliminar rol ocupado",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/graphql/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"mutation($id:ID!){deleteRole(id:$id)}\",\n  \"variables\": {\n    \"id\": \"{{gqlRoleId}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const r=pm.response.json(); pm.test('Sin errores GraphQL',()=>pm.expect(r.errors).to.be.undefined); if(r.errors) throw new Error('Detener demostración: GraphQL devolvió errores');",
+              "pm.test('Rol eliminado',()=>pm.expect(r.data.deleteRole).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 · GraphQL comprobar rol eliminado",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/graphql/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query($id:ID!){role(id:$id){id}}\",\n  \"variables\": {\n    \"id\": \"{{gqlRoleId}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const r=pm.response.json(); pm.test('Sin errores GraphQL',()=>pm.expect(r.errors).to.be.undefined); if(r.errors) throw new Error('Detener demostración: GraphQL devolvió errores');",
+              "pm.test('Rol no visible',()=>pm.expect(r.data.role).to.eql(null));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 · GraphQL esperar retiro del rol",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/graphql/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "Repetir cada 3 segundos hasta que pase el test, máximo sugerido 180 segundos.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query($id:ID!){user(id:$id){id roleId}}\",\n  \"variables\": {\n    \"id\": \"{{gqlUserId}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const r=pm.response.json(); pm.test('Sin errores GraphQL',()=>pm.expect(r.errors).to.be.undefined); if(r.errors) throw new Error('Detener demostración: GraphQL devolvió errores');",
+              "pm.test('Usuario conservado sin rol',()=>pm.expect(r.data.user.roleId).to.eql(null));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 · GraphQL eliminar usuario",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/graphql/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"mutation($id:ID!){deleteUser(id:$id)}\",\n  \"variables\": {\n    \"id\": \"{{gqlUserId}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const r=pm.response.json(); pm.test('Sin errores GraphQL',()=>pm.expect(r.errors).to.be.undefined); if(r.errors) throw new Error('Detener demostración: GraphQL devolvió errores');",
+              "pm.test('Usuario eliminado',()=>pm.expect(r.data.deleteUser).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 · GraphQL comprobar usuario eliminado",
+      "request": {
+        "method": "POST",
+        "url": "{{eftBffUrl}}/api/graphql/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query($id:ID!){user(id:$id){id}}\",\n  \"variables\": {\n    \"id\": \"{{gqlUserId}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const r=pm.response.json(); pm.test('Sin errores GraphQL',()=>pm.expect(r.errors).to.be.undefined); if(r.errors) throw new Error('Detener demostración: GraphQL devolvió errores');",
+              "pm.test('Usuario no visible',()=>pm.expect(r.data.user).to.eql(null));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

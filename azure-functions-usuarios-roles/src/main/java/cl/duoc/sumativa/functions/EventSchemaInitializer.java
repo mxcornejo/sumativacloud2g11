@@ -11,7 +11,7 @@ public class EventSchemaInitializer {
     if(!command.startsWith("CREATE OR REPLACE TRIGGER")) command=command.replaceFirst(";\\s*$", "");
     s.execute(command);
    }
-   try(ResultSet r=s.executeQuery("SELECT name,line,text FROM user_errors WHERE name IN ('TRG_USUARIOS_OUTBOX','TRG_ROLES_OUTBOX')")) {
+   try(ResultSet r=s.executeQuery("SELECT name,line,text FROM user_errors WHERE name IN ('TRG_USUARIOS_OUTBOX','TRG_ROLES_OUTBOX','TRG_USUARIO_ROL_VIGENTE','TRG_PROTEGER_ROL_DEFAULT')")) {
     if(r.next()) throw new SQLException("Error en trigger: " + r.getString(1) + " línea " + r.getInt(2) + " " + r.getString(3));
    }
   }

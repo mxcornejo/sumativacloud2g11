@@ -19,7 +19,7 @@ final class RoleRepository {
 
   List<Map<String, Object>> list() {
     try (Statement statement = connection.createStatement();
-         ResultSet result = statement.executeQuery("SELECT id,name,description,active FROM roles ORDER BY id")) {
+         ResultSet result = statement.executeQuery("SELECT id,name,description,active FROM roles WHERE deleted_at IS NULL ORDER BY id")) {
       List<Map<String, Object>> roles = new ArrayList<>();
       while (result.next()) roles.add(map(result));
       return roles;
@@ -30,7 +30,7 @@ final class RoleRepository {
 
   Map<String, Object> find(long id) {
     try (PreparedStatement statement = connection.prepareStatement(
-        "SELECT id,name,description,active FROM roles WHERE id=?")) {
+        "SELECT id,name,description,active FROM roles WHERE id=? AND deleted_at IS NULL")) {
       statement.setLong(1, id);
       try (ResultSet result = statement.executeQuery()) {
         return result.next() ? map(result) : null;
@@ -61,12 +61,15 @@ final class RoleRepository {
   Map<String, Object> update(long id, Map<String, Object> input) {
     String name = requiredText(input, "name");
     try (PreparedStatement statement = connection.prepareStatement(
-        "UPDATE roles SET name=?,description=?,active=?,updated_at=SYSTIMESTAMP WHERE id=?")) {
+        "UPDATE roles SET name=?,description=?,active=?,updated_at=SYSTIMESTAMP WHERE id=? AND deleted_at IS NULL AND is_default=0")) {
       statement.setString(1, name);
       statement.setString(2, optionalText(input, "description"));
       statement.setInt(3, active(input));
       statement.setLong(4, id);
-      if (statement.executeUpdate() == 0) throw new DomainException("ROLE_NOT_FOUND", "Rol no encontrado.");
+      if (statement.executeUpdate() == 0) {
+        if (exists(id)) throw new DomainException("ROLE_IN_USE", "El rol por defecto está protegido.");
+        throw new DomainException("ROLE_NOT_FOUND", "Rol no encontrado.");
+      }
       return find(id);
     } catch (SQLException exception) {
       if (exception.getErrorCode() == 1) throw new DomainException("DUPLICATE_ROLE", "Ya existe un rol con ese nombre.");
@@ -75,15 +78,12 @@ final class RoleRepository {
   }
 
   void delete(long id) {
-    try (PreparedStatement check = connection.prepareStatement("SELECT COUNT(*) FROM usuarios WHERE role_id=?")) {
-      check.setLong(1, id);
-      try (ResultSet result = check.executeQuery()) {
-        result.next();
-        if (result.getInt(1) > 0) throw new DomainException("ROLE_IN_USE", "No se puede eliminar un rol con usuarios asociados.");
-      }
-      try (PreparedStatement statement = connection.prepareStatement("DELETE FROM roles WHERE id=?")) {
-        statement.setLong(1, id);
-        if (statement.executeUpdate() == 0) throw new DomainException("ROLE_NOT_FOUND", "Rol no encontrado.");
+    try (PreparedStatement statement = connection.prepareStatement(
+        "UPDATE roles SET deleted_at=SYSTIMESTAMP,active=0,updated_at=SYSTIMESTAMP WHERE id=? AND deleted_at IS NULL AND is_default=0")) {
+      statement.setLong(1, id);
+      if (statement.executeUpdate() == 0) {
+        if (exists(id)) throw new DomainException("ROLE_IN_USE", "El rol por defecto está protegido.");
+        throw new DomainException("ROLE_NOT_FOUND", "Rol no encontrado.");
       }
     } catch (SQLException exception) {
       throw databaseError(exception);
@@ -91,7 +91,7 @@ final class RoleRepository {
   }
 
   boolean exists(long id) {
-    try (PreparedStatement statement = connection.prepareStatement("SELECT 1 FROM roles WHERE id=?")) {
+    try (PreparedStatement statement = connection.prepareStatement("SELECT 1 FROM roles WHERE id=? AND deleted_at IS NULL")) {
       statement.setLong(1, id);
       try (ResultSet result = statement.executeQuery()) {
         return result.next();

@@ -45,14 +45,16 @@ final class UserRepository {
   Map<String, Object> create(Map<String, Object> input) {
     String fullName = requiredText(input, "fullName");
     String email = requiredText(input, "email");
-    long roleId = requiredId(input, "roleId");
-    requireRole(roleId);
+    if (input.get("roleId") != null) throw new DomainException("INVALID_REQUEST", "Al crear se asigna el rol por defecto mediante eventos; cambie el rol con PUT después.");
+    Long roleId = null;
     try (PreparedStatement statement = connection.prepareStatement(
-        "INSERT INTO usuarios(full_name,email,role_id,active) VALUES(?,?,?,?)", new String[]{"id"})) {
+        "INSERT INTO usuarios(full_name,email,role_id,active,default_pending) VALUES(?,?,?,?,?)", new String[]{"id"})) {
       statement.setString(1, fullName);
       statement.setString(2, email);
-      statement.setLong(3, roleId);
+      if (roleId == null) statement.setNull(3, java.sql.Types.NUMERIC);
+      else statement.setLong(3, roleId);
       statement.setInt(4, active(input));
+      statement.setInt(5, roleId == null ? 1 : 0);
       statement.executeUpdate();
       try (ResultSet keys = statement.getGeneratedKeys()) {
         if (!keys.next()) throw new DomainException("DATABASE_ERROR", "No fue posible obtener el usuario creado.");
@@ -67,13 +69,14 @@ final class UserRepository {
   Map<String, Object> update(long id, Map<String, Object> input) {
     String fullName = requiredText(input, "fullName");
     String email = requiredText(input, "email");
-    long roleId = requiredId(input, "roleId");
-    requireRole(roleId);
+    Long roleId = input.get("roleId") == null ? null : requiredId(input, "roleId");
+    if (roleId != null) requireRole(roleId);
     try (PreparedStatement statement = connection.prepareStatement(
-        "UPDATE usuarios SET full_name=?,email=?,role_id=?,active=?,updated_at=SYSTIMESTAMP WHERE id=?")) {
+        "UPDATE usuarios SET full_name=?,email=?,role_id=?,active=?,default_pending=0,updated_at=SYSTIMESTAMP WHERE id=?")) {
       statement.setString(1, fullName);
       statement.setString(2, email);
-      statement.setLong(3, roleId);
+      if (roleId == null) statement.setNull(3, java.sql.Types.NUMERIC);
+      else statement.setLong(3, roleId);
       statement.setInt(4, active(input));
       statement.setLong(5, id);
       if (statement.executeUpdate() == 0) throw new DomainException("USER_NOT_FOUND", "Usuario no encontrado.");
@@ -102,7 +105,8 @@ final class UserRepository {
     user.put("id", result.getLong("id"));
     user.put("fullName", result.getString("full_name"));
     user.put("email", result.getString("email"));
-    user.put("roleId", result.getLong("role_id"));
+    long roleId = result.getLong("role_id");
+    user.put("roleId", result.wasNull() ? null : roleId);
     user.put("active", result.getInt("active") == 1);
     return user;
   }
@@ -130,6 +134,7 @@ final class UserRepository {
   }
 
   private static DomainException databaseError(SQLException cause) {
+    if (cause.getErrorCode() == 20001 || cause.getErrorCode() == 2291) return new DomainException("ROLE_NOT_FOUND", "El rol indicado no está disponible.");
     return new DomainException("DATABASE_ERROR", "No fue posible procesar la operación en Oracle.", cause);
   }
 }

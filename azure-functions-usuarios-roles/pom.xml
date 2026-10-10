@@ -4,6 +4,7 @@
   <groupId>cl.duoc.sumativa</groupId><artifactId>usuarios-roles-functions</artifactId><version>1.0.0</version>
   <properties><maven.compiler.release>17</maven.compiler.release><azure.functions.java.library.version>3.1.0</azure.functions.java.library.version><azure.functions.maven.plugin.version>1.37.1</azure.functions.maven.plugin.version><functionAppName>usuarios-roles-functions</functionAppName></properties>
   <dependencies>
+    <dependency><groupId>com.h2database</groupId><artifactId>h2</artifactId><version>2.3.232</version><scope>test</scope></dependency>
     <dependency><groupId>com.microsoft.azure.functions</groupId><artifactId>azure-functions-java-library</artifactId><version>${azure.functions.java.library.version}</version></dependency>
     <dependency><groupId>com.oracle.database.jdbc</groupId><artifactId>ojdbc11</artifactId><version>23.4.0.24.05</version></dependency>
     <dependency><groupId>com.oracle.database.security</groupId><artifactId>oraclepki</artifactId><version>23.4.0.24.05</version></dependency>
